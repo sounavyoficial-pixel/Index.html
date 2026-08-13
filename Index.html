@@ -7,10 +7,10 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #0b0f19;
-            color: #e6edf3;
+            background-color: #0d1117;
+            color: #c9d1d9;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -20,47 +20,58 @@
             max-width: 650px;
             width: 100%;
             margin: auto;
-            background: #111827;
-            padding: 28px;
-            border-radius: 10px;
-            border: 1px solid #374151;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            background: #161b22;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
-        h1 { font-size: 16px; color: #38bdf8; margin-bottom: 12px; letter-spacing: 0.5px; }
-        p { font-size: 13px; line-height: 1.6; color: #9ca3af; margin-bottom: 12px; }
+        h1 { font-size: 16px; color: #38bdf8; margin-bottom: 12px; font-family: monospace; }
+        p { font-size: 13px; line-height: 1.5; color: #8b949e; margin-bottom: 12px; }
+        .status-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            margin-bottom: 16px;
+        }
         .meta-tag {
             font-family: monospace;
-            font-size: 11px;
-            color: #6b7280;
-            border-top: 1px solid #1f2937;
+            font-size: 10px;
+            color: #484f58;
+            border-top: 1px solid #21262d;
             padding-top: 12px;
-            margin-top: 16px;
+            margin-top: 12px;
+            word-break: break-all;
         }
-        /* Farol Tátil Sóbrio (Bolinha Executiva) */
-        #gaia-bolinha-sóbria {
+
+        /* Farol Tátil Sóbrio (Bolinha Azul Arrastável) */
+        #gaia-bolinha {
             position: fixed;
-            bottom: 32px;
-            right: 32px;
-            width: 36px;
-            height: 36px;
-            background: rgba(56, 189, 248, 0.12);
-            border: 1.5px solid #38bdf8;
+            bottom: 30px;
+            right: 30px;
+            width: 44px;
+            height: 44px;
+            background: rgba(56, 189, 248, 0.15);
+            border: 2px solid #38bdf8;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 99999;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-            transition: transform 0.2s ease, background 0.2s ease;
+            z-index: 999999;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+            touch-action: none;
+            user-select: none;
         }
-        #gaia-bolinha-sóbria:active {
-            transform: scale(0.92);
-        }
-        #gaia-bolinha-sóbria::after {
+        #gaia-bolinha::after {
             content: '';
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background-color: #38bdf8;
             border-radius: 50%;
         }
@@ -69,18 +80,56 @@
 <body>
 
     <div class="terminal-box">
-        <h1>GAIA IP // ENCLAVE DE BORDA SOBERANA</h1>
-        <p>Ambiente isolado e sincronizado. O motor processa as sementes locais e preserva a integridade de autoria e propriedade do Arquiteto sem atrito na interface.</p>
-        <p><strong>Status:</strong> Conectado ao Sounavy Core (Modo Autoral Ativo).</p>
-        <div class="meta-tag">HASH: 594a8b95fbd50fc9e4a90d8a3cb54feb49f0b6a8 | PROTOCOLO: SDRR v3.0 | AUTOR: ANTÔNIO ALBERTO L. ELIAS</div>
+        <span class="status-tag">SDRR v3.0 // BORDA ATIVA</span>
+        <h1>GAIA IP — ENCLAVE SOBERANO</h1>
+        <p>Interface de navegação e direcionamento tátil. Módulo de borda pronto para operação limpa e sem ruídos visuais.</p>
+        <div class="meta-tag">
+            AUTOR: ANTÔNIO ALBERTO L. ELIAS<br>
+            HASH: 594a8b95fbd50fc9e4a90d8a3cb54feb49f0b6a8
+        </div>
     </div>
 
-    <div id="gaia-bolinha-sóbria" title="GaIA Borda Ativa"></div>
+    <div id="gaia-bolinha" title="Farol Tátil GaIA"></div>
 
     <script>
-        document.getElementById('gaia-bolinha-sóbria').addEventListener('click', function() {
-            console.log('[GaIA IP]: Intenção isolada com sucesso na borda.');
-            alert('[GaIA IP]: Semente de intenção registrada com segurança e custódia do Arquiteto.');
+        const ball = document.getElementById('gaia-bolinha');
+        let isDragging = false;
+        let currentX, currentY, initialX, initialY;
+        let xOffset = 0, yOffset = 0;
+
+        ball.addEventListener('touchstart', dragStart, false);
+        ball.addEventListener('touchend', dragEnd, false);
+        ball.addEventListener('touchmove', drag, false);
+
+        function dragStart(e) {
+            initialX = e.touches[0].clientX - xOffset;
+            initialY = e.touches[0].clientY - yOffset;
+            if (e.target === ball) isDragging = true;
+        }
+
+        function dragEnd() {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.touches[0].clientX - initialX;
+                currentY = e.touches[0].clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, ball);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        ball.addEventListener('click', () => {
+            alert('GaIA IP: Farol Tátil acionado na Borda.');
         });
     </script>
 </body>
