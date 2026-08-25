@@ -1,204 +1,180 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GaIA IP // Bolinha Navegadora R37</title>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body {
-    width:100%; height:100%;
-    background: transparent !important; /* Tela 100% Transparente */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
-    overflow: hidden;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GaIA IP — Terminal de Borda Soberana</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #ffffff;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
 
-  /* Overlay invisível que não bloqueia o fundo */
-  #chassi-transparente {
-    position: fixed; inset: 0;
-    pointer-events: none; z-index: 99990;
-  }
+        /* Farol Tátil Sóbrio - Inicia no centro embaixo */
+        #gaia-bolinha {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 54px;
+            height: 54px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999999;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            touch-action: none;
+            user-select: none;
+            transition: box-shadow 0.2s;
+        }
+        #gaia-bolinha::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+        }
 
-  /* Farol Tátil / Bolinha Viva (R37) */
-  #gaia-farol {
-    position: fixed;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(0, 255, 102, 0.25);
-    border: 2px solid #00FF66;
-    box-shadow: 0 0 16px #00FF66, inset 0 0 8px #00FF66;
-    left: calc(100vw - 50px); top: calc(100vh - 80px);
-    transform: translate(-50%, -50%);
-    cursor: grab; pointer-events: auto; z-index: 100000;
-    touch-action: none;
-    transition: left 0.35s cubic-bezier(0.22, 1, 0.36, 1), top 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    animation: pulso-farol 2.4s infinite ease-in-out;
-  }
-  #gaia-farol::after {
-    content: ''; position: absolute;
-    top: 50%; left: 50%; width: 8px; height: 8px;
-    background: #FFFFFF; border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  @keyframes pulso-farol {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
-    50% { transform: translate(-50%, -50%) scale(1.15); filter: brightness(1.3); }
-  }
-
-  /* Etiqueta de Destino (Label de Tutela) */
-  #etiqueta-alvo {
-    position: fixed; display: none;
-    background: rgba(13, 17, 23, 0.92);
-    border: 1px solid #00FF66; color: #00FF66;
-    font-size: 11px; font-weight: bold;
-    padding: 4px 10px; border-radius: 99px;
-    white-space: nowrap; pointer-events: none;
-    transform: translate(-50%, -40px); z-index: 100001;
-    backdrop-filter: blur(4px);
-  }
-
-  /* Gaveta Flutuante de Comandos (Minimalista) */
-  #painel-comando {
-    position: fixed; bottom: 16px; left: 16px; right: 16px;
-    background: rgba(13, 17, 23, 0.88);
-    border: 1px solid rgba(48, 54, 61, 0.8);
-    border-radius: 14px; padding: 10px;
-    display: none; pointer-events: auto; z-index: 99995;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-    backdrop-filter: blur(10px);
-  }
-  #painel-comando.ativo { display: block; }
-  
-  .grid-saltos {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;
-  }
-  .btn-salto {
-    background: #21262d; border: 1px solid #30363d;
-    color: #c9d1d9; font-size: 11px; padding: 8px;
-    border-radius: 8px; cursor: pointer; text-align: center;
-  }
-  .btn-salto:active { background: #00FF66; color: #000; font-weight: bold; }
-
-  .linha-voz { display: flex; gap: 6px; }
-  #input-intencao {
-    flex: 1; background: #0d1117; border: 1px solid #30363d;
-    border-radius: 8px; color: #fff; padding: 8px; font-size: 13px; outline: none;
-  }
-  #btn-voz-mic {
-    background: #238636; border: none; color: #fff;
-    padding: 0 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
-  }
-  #status-txt { font-size: 10px; color: #8b949e; margin-top: 5px; text-align: center; }
-</style>
+        /* Painel de Controle Flutuante */
+        #gaia-painel {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 400px;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999998;
+        }
+        .painel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .painel-btn {
+            background: #1f2937;
+            color: #9ca3af;
+            border: 1px solid #374151;
+            padding: 8px 4px;
+            font-size: 11px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .painel-btn:active {
+            background: #10b981;
+            color: #fff;
+        }
+        #status-texto {
+            font-size: 11px;
+            color: #10b981;
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
 
-<div id="chassi-transparente">
-  <div id="etiqueta-alvo"></div>
-  <div id="gaia-farol" role="button" aria-label="Bolinha Farol R37"></div>
-
-  <div id="painel-comando">
-    <div class="grid-saltos">
-      <button class="btn-salto" onclick="saltarPara(20, 20, 'Noroeste / Topo')">↖ Topo Esq</button>
-      <button class="btn-salto" onclick="saltarPara(50, 20, 'Norte / Menu')">↑ Menu Topo</button>
-      <button class="btn-salto" onclick="saltarPara(80, 20, 'Nordeste / Perfil')">↗ Topo Dir</button>
-      <button class="btn-salto" onclick="saltarPara(50, 50, 'Centro / Ação')">⦿ Centro</button>
-      <button class="btn-salto" onclick="saltarPara(20, 80, 'Sudoeste / Base')">↙ Base Esq</button>
-      <button class="btn-salto" onclick="saltarPara(80, 80, 'Descanso Sul')">↘ Descanso</button>
+    <div id="gaia-painel">
+        <div id="status-texto">SDRR v3.0 // BORDA ATIVA</div>
+        <div class="painel-grid">
+            <button class="painel-btn" onclick="moverPara('Topo Esq')">↗ Topo Esq</button>
+            <button class="painel-btn" onclick="moverPara('Norte / Menu')">↑ Menu Topo</button>
+            <button class="painel-btn" onclick="moverPara('Topo Dir')">↖ Topo Dir</button>
+            <button class="painel-btn" onclick="moverPara('Centro')">⊙ Centro</button>
+            <button class="painel-btn" onclick="moverPara('Base Esq')">↙ Base Esq</button>
+            <button class="painel-btn" onclick="moverPara('Descanso')">↘ Descanso</button>
+        </div>
     </div>
-    <div class="linha-voz">
-      <input type="text" id="input-intencao" placeholder="Fale ou digite para onde ir...">
-      <button id="btn-voz-mic">🎙 Voz</button>
-    </div>
-    <div id="status-txt">Farol R37 · Toque na bolinha para abrir o guia de salto</div>
-  </div>
-</div>
 
-<script>
-  const farol = document.getElementById('gaia-farol');
-  const painel = document.getElementById('painel-comando');
-  const tag = document.getElementById('etiqueta-alvo');
-  const input = document.getElementById('input-intencao');
-  const statusTxt = document.getElementById('status-txt');
+    <div id="gaia-bolinha" title="Farol Tátil GaIA"></div>
 
-  let drag = false, moved = false, lx, ly;
+    <script>
+        const ball = document.getElementById('gaia-bolinha');
+        const painel = document.getElementById('gaia-painel');
+        const statusTexto = document.getElementById('status-texto');
 
-  // Mecânica do Salto Hiperespacial (Jump por coordenadas X, Y)
-  function saltarPara(xPorcento, yPorcento, nomeAlvo) {
-    const nx = (window.innerWidth * xPorcento) / 100;
-    const ny = (window.innerHeight * yPorcento) / 100;
+        let isDragging = false;
+        let startX, startY;
+        let initialLeft, initialTop;
 
-    farol.style.left = nx + 'px';
-    farol.style.top = ny + 'px';
+        // Abrir/Fechar painel ao clicar na bolinha (se não estiver arrastando muito)
+        let moved = false;
 
-    tag.style.left = nx + 'px';
-    tag.style.top = ny + 'px';
-    tag.textContent = '⦿ ' + nomeAlvo;
-    tag.style.display = 'block';
+        ball.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            moved = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = ball.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
 
-    statusTxt.textContent = 'Salto executado para: ' + nomeAlvo;
-    setTimeout(() => { tag.style.display = 'none'; }, 3200);
-  }
+            ball.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
 
-  // Controle de Arraste Livre (Touch / Pointer no iPhone)
-  farol.addEventListener('pointerdown', e => {
-    drag = true; moved = false; lx = e.clientX; ly = e.clientY;
-    farol.setPointerCapture(e.pointerId);
-  });
+        ball.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
 
-  addEventListener('pointermove', e => {
-    if (!drag) return;
-    const dx = e.clientX - lx, dy = e.clientY - ly;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-    lx = e.clientX; ly = e.clientY;
-    farol.style.left = Math.max(16, Math.min(innerWidth - 16, e.clientX)) + 'px';
-    farol.style.top = Math.max(16, Math.min(innerHeight - 16, e.clientY)) + 'px';
-  }, { passive: true });
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                moved = true;
+            }
 
-  addEventListener('pointerup', () => drag = false);
+            ball.style.left = (initialLeft + dx) + 'px';
+            ball.style.top = (initialTop + dy) + 'px';
+            ball.style.transform = 'none'; // Remove o centralizador para dar liberdade total de arraste
+            ball.style.bottom = 'auto';
+            ball.style.right = 'auto';
+        });
 
-  // Toque na Bolinha abre/fecha a gaveta
-  farol.addEventListener('click', () => {
-    if (moved) return;
-    painel.classList.toggle('ativo');
-  });
+        ball.addEventListener('pointerup', (e) => {
+            isDragging = false;
+            ball.releasePointerCapture(e.pointerId);
+            
+            if (!moved) {
+                // Toque simples: alterna o painel
+                painel.style.display = painel.style.display === 'flex' ? 'none' : 'flex';
+            }
+        });
 
-  // Reconhecimento de Voz Direto na Borda
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SR) {
-    const rec = new SR();
-    rec.lang = 'pt-BR';
-    rec.continuous = false;
-
-    rec.onresult = (ev) => {
-      const fala = ev.results[0][0].transcript.toLowerCase();
-      input.value = fala;
-      
-      if (fala.includes('topo') || fala.includes('menu') || fala.includes('cima')) {
-        saltarPara(50, 15, 'Menu Superior');
-      } else if (fala.includes('centro') || fala.includes('meio') || fala.includes('ação')) {
-        saltarPara(50, 50, 'Centro da Tela');
-      } else if (fala.includes('canto') || fala.includes('baixo') || fala.includes('descanso')) {
-        saltarPara(85, 85, 'Descanso Sul');
-      } else {
-        saltarPara(30 + Math.random()*40, 30 + Math.random()*40, 'Alvo: ' + fala.slice(0, 14));
-      }
-    };
-    document.getElementById('btn-voz-mic').onclick = () => {
-      try { rec.start(); statusTxt.textContent = "Ouvindo intenção de navegação..."; } catch(e) { rec.stop(); }
-    };
-  } else {
-    document.getElementById('btn-voz-mic').style.display = 'none';
-  }
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const v = input.value.toLowerCase();
-      saltarPara(30 + Math.random()*40, 30 + Math.random()*40, v.slice(0, 16));
-      input.value = '';
-    }
-  });
-</script>
+        function moverPara(local) {
+            statusTexto.innerText = "Salto executado para: " + local;
+            ball.style.transform = 'none';
+            if(local === 'Centro') {
+                ball.style.top = '50%';
+                ball.style.left = '50%';
+                ball.style.transform = 'translate(-50%, -50%)';
+            } else if(local.includes('Topo')) {
+                ball.style.top = '20px';
+                ball.style.left = '50%';
+                ball.style.transform = 'translateX(-50%)';
+            } else {
+                ball.style.bottom = '40px';
+                ball.style.left = '50%';
+                ball.style.transform = 'translateX(-50%)';
+            }
+        }
+    </script>
 </body>
 </html>
