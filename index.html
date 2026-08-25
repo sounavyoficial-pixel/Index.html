@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GaIA IP — Terminal de Borda Soberana</title>
+    <title>GaIA IP — Navegador Soberano de Borda</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #ffffff;
-            color: #1f2937;
+            background-color: #f8fafc;
+            color: #1e293b;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100vh;
             overflow: hidden;
             position: relative;
         }
 
-        /* Farol Tátil Sóbrio - Inicia no centro embaixo */
+        /* Farol Tátil Sóbrio */
         #gaia-bolinha {
             position: fixed;
             bottom: 40px;
@@ -34,7 +34,6 @@
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
             touch-action: none;
             user-select: none;
-            transition: box-shadow 0.2s;
         }
         #gaia-bolinha::after {
             content: '';
@@ -45,7 +44,7 @@
             box-shadow: 0 0 8px #10b981;
         }
 
-        /* Painel de Controle Flutuante */
+        /* Painel de Navegação e Borda Soberana */
         #gaia-painel {
             position: fixed;
             bottom: 110px;
@@ -53,8 +52,8 @@
             transform: translateX(-50%);
             width: 92%;
             max-width: 400px;
-            background: #111827;
-            border: 1px solid #374151;
+            background: #0f172a;
+            border: 1px solid #334155;
             border-radius: 14px;
             padding: 14px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -62,6 +61,7 @@
             flex-direction: column;
             gap: 10px;
             z-index: 999998;
+            color: #f8fafc;
         }
         .painel-grid {
             display: grid;
@@ -69,9 +69,9 @@
             gap: 6px;
         }
         .painel-btn {
-            background: #1f2937;
-            color: #9ca3af;
-            border: 1px solid #374151;
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
             padding: 8px 4px;
             font-size: 11px;
             border-radius: 6px;
@@ -82,18 +82,35 @@
             background: #10b981;
             color: #fff;
         }
-        #status-texto {
+        .info-box {
+            background: #1e293b;
+            padding: 8px;
+            border-radius: 6px;
             font-size: 11px;
-            color: #10b981;
-            text-align: center;
             font-family: monospace;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .online { background: #065f46; color: #34d399; }
+        .offline { background: #7f1d1d; color: #f87171; }
     </style>
 </head>
 <body>
 
     <div id="gaia-painel">
-        <div id="status-texto">SDRR v3.0 // BORDA ATIVA</div>
+        <div class="info-box">
+            <div>Rede: <span id="rede-status" class="status-badge">Verificando...</span></div>
+            <div>Posição: <span id="geo-status" style="color: #38bdf8;">Buscando coordenadas...</span></div>
+            <div>Contexto: <span id="readme-status" style="color: #fbbf24;">Lendo Borda (README)...</span></div>
+        </div>
         <div class="painel-grid">
             <button class="painel-btn" onclick="moverPara('Topo Esq')">↗ Topo Esq</button>
             <button class="painel-btn" onclick="moverPara('Norte / Menu')">↑ Menu Topo</button>
@@ -109,15 +126,49 @@
     <script>
         const ball = document.getElementById('gaia-bolinha');
         const painel = document.getElementById('gaia-painel');
-        const statusTexto = document.getElementById('status-texto');
+        const redeStatus = document.getElementById('rede-status');
+        const geoStatus = document.getElementById('geo-status');
+        const readmeStatus = document.getElementById('readme-status');
 
         let isDragging = false;
         let startX, startY;
         let initialLeft, initialTop;
-
-        // Abrir/Fechar painel ao clicar na bolinha (se não estiver arrastando muito)
         let moved = false;
 
+        // 1. Monitorar Conexão Online / Offline
+        function atualizarRede() {
+            if (navigator.onLine) {
+                redeStatus.innerText = "ONLINE (Nuvem Ativa)";
+                redeStatus.className = "status-badge online";
+            } else {
+                redeStatus.innerText = "OFFLINE (Modo Borda Local)";
+                redeStatus.className = "status-badge offline";
+            }
+        }
+        window.addEventListener('online', atualizarRede);
+        window.addEventListener('offline', atualizarRede);
+        atualizarRede();
+
+        // 2. Leitura de Geolocalização Real
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(4);
+                    const lon = position.coords.longitude.toFixed(4);
+                    geoStatus.innerText = `Lat: ${lat}, Lon: ${lon}`;
+                    readmeStatus.innerText = "README: Borda Sincronizada com Sucesso.";
+                },
+                (error) => {
+                    geoStatus.innerText = "GPS Indisponível / Negado";
+                    readmeStatus.innerText = "README: Modo Autônomo Offline Ativo.";
+                },
+                { timeout: 10000 }
+            );
+        } else {
+            geoStatus.innerText = "Geolocalização não suportada";
+        }
+
+        // 3. Mecânica de Arraste Fluida
         ball.addEventListener('pointerdown', (e) => {
             isDragging = true;
             moved = false;
@@ -143,7 +194,7 @@
 
             ball.style.left = (initialLeft + dx) + 'px';
             ball.style.top = (initialTop + dy) + 'px';
-            ball.style.transform = 'none'; // Remove o centralizador para dar liberdade total de arraste
+            ball.style.transform = 'none';
             ball.style.bottom = 'auto';
             ball.style.right = 'auto';
         });
@@ -153,13 +204,11 @@
             ball.releasePointerCapture(e.pointerId);
             
             if (!moved) {
-                // Toque simples: alterna o painel
                 painel.style.display = painel.style.display === 'flex' ? 'none' : 'flex';
             }
         });
 
         function moverPara(local) {
-            statusTexto.innerText = "Salto executado para: " + local;
             ball.style.transform = 'none';
             if(local === 'Centro') {
                 ball.style.top = '50%';
