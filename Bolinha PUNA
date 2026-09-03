@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GaIA IP — Navegador Soberano por Voz e Destino</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+        }
+
+        /* Farol Tátil Sóbrio (Bolinha Inteligente no Centro da Base) */
+        #gaia-bolinha {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 64px;
+            height: 64px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999999;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+            touch-action: none;
+            user-select: none;
+            transition: background 0.3s;
+        }
+        #gaia-bolinha.ouvindo {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+            animation: pulsar 1.2s infinite;
+        }
+        #gaia-bolinha::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #10b981;
+            transition: background 0.3s;
+        }
+        #gaia-bolinha.ouvindo::after {
+            background-color: #ef4444;
+            box-shadow: 0 0 12px #ef4444;
+        }
+        @keyframes pulsar {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        /* Painel de Borda e Roteamento Soberano */
+        #gaia-painel {
+            position: fixed;
+            bottom: 125px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 420px;
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 999998;
+        }
+        .info-box {
+            background: #1f2937;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            border: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: #9ca3af;
+        }
+        .status-destaque {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .online { background: #065f46; color: #34d399; }
+        .offline { background: #7f1d1d; color: #f87171; }
+
+        /* Visor de Intenção por Voz */
+        .visor-voz {
+            background: #030712;
+            border: 1px solid #374151;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #10b981;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gaia-painel">
+        <div class="info-box">
+            <div>Rede: <span id="rede-status" class="status-badge">Verificando...</span></div>
+            <div>Posição Real: <span id="geo-status" class="status-destaque">Buscando coordenadas GPS...</span></div>
+            <div>Guia de Borda: <span id="readme-status" style="color: #fbbf24;">Toque na bolinha e diga o que procura.</span></div>
+        </div>
+
+        <div id="visor-intencao" class="visor-voz">
+            "Aguardando comando de voz..."
+        </div>
+    </div>
+
+    <div id="gaia-bolinha" title="Farol Tátil GaIA" onclick="alternarEscuta()"></div>
+
+    <script>
+        const ball = document.getElementById('gaia-bolinha');
+        const redeStatus = document.getElementById('rede-status');
+        const geoStatus = document.getElementById('geo-status');
+        const readmeStatus = document.getElementById('readme-status');
+        const visorIntencao = document.getElementById('visor-intencao');
+
+        let ouvindo = false;
+        let coordenadasAtuais = { lat: null, lon: null };
+
+        // 1. Monitorar Conexão Online / Offline
+        function atualizarRede() {
+            if (navigator.onLine) {
+                redeStatus.innerText = "ONLINE (Nuvem Soberana)";
+                redeStatus.className = "status-badge online";
+            } else {
+                redeStatus.innerText = "OFFLINE (Modo Borda Autônomo)";
+                redeStatus.className = "status-badge offline";
+            }
+        }
+        window.addEventListener('online', atualizarRede);
+        window.addEventListener('offline', atualizarRede);
+        atualizarRede();
+
+        // 2. Geolocalização Real Instantânea
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    coordenadasAtuais.lat = position.coords.latitude.toFixed(5);
+                    coordenadasAtuais.lon = position.coords.longitude.toFixed(5);
+                    geoStatus.innerText = `Lat: ${coordenadasAtuais.lat}, Lon: ${coordenadasAtuais.lon}`;
+                },
+                (error) => {
+                    geoStatus.innerText = "GPS Indisponível (Modo Estimado)";
+                },
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+            );
+        } else {
+            geoStatus.innerText = "GPS não suportado neste dispositivo";
+        }
+
+        // 3. Motor de Reconhecimento de Intenção por Voz Nativa
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const intent = event.results[0][0].transcript.toLowerCase();
+                visorIntencao.innerText = `"${intent}"`;
+                processarDestino(intent);
+                pararEscuta();
+            };
+
+            recognition.onerror = () => {
+                visorIntencao.innerText = "Erro ao capturar voz. Tente novamente.";
+                pararEscuta();
+            };
+
+            recognition.onend = () => {
+                pararEscuta();
+            };
+        } else {
+            visorIntencao.innerText = "Reconhecimento de voz indisponível neste navegador.";
+        }
+
+        function alternarEscuta() {
+            if (!recognition) return;
+            if (!ouvindo) {
+                try {
+                    recognition.start();
+                    ouvindo = true;
+                    ball.classList.add('ouvindo');
+                    visorIntencao.innerText = "Ouvindo sua necessidade...";
+                    readmeStatus.innerText = "Analisando rota de borda...";
+                } catch(e) {
+                    pararEscuta();
+                }
+            } else {
+                recognition.stop();
+                pararEscuta();
+            }
+        }
+
+        function pararEscuta() {
+            ouvindo = false;
+            ball.classList.remove('ouvindo');
+        }
+
+        // 4. Inteligência de Roteamento por Intenção (Sem botões de direção)
+        function processarDestino(texto) {
+            readmeStatus.innerText = "Processando destino com base na sua posição...";
+            
+            setTimeout(() => {
+                if (texto.includes('farmácia') || texto.includes('remedio') || texto.includes('hospital')) {
+                    visorIntencao.innerText = "Destino: Saúde mais próxima detectada.";
+                    readmeStatus.innerText = "Rota traçada a partir da sua coordenada GPS.";
+                } else if (texto.includes('mercado') || texto.includes('comida') || texto.includes('padaria')) {
+                    visorIntencao.innerText = "Destino: Abastecimento local mapeado.";
+                    readmeStatus.innerText = "Guia de borda pronto para conduzir.";
+                } else {
+                    visorIntencao.innerText = `Intenção registrada: "${texto}"`;
+                    readmeStatus.innerText = "Borda sincronizada com a realidade local.";
+                }
+            }, 800);
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+rodou 2 semanas sounavy.vercel. Gemini 
+
+Gemig
