@@ -1,0 +1,57 @@
+COLA DO SITE — 33
+Última revisão: 04/ago/2026
+Repositório: dralbertoeliasBr/BOLINHA- No ar em:
+dralbertoeliasbr.github.io/BOLINHA-/ Destino do domínio: sounavy.com
+1. Subir ou atualizar qualquer arquivo
+1. Safari: github.com/dralbertoeliasBr/BOLINHA-/upload/main
+2. choose your files → escolhe o arquivo
+3. Campo de mensagem: escreve o que mudou (ex.: troca do telefone · 33 )
+4. Botão verde Commit changes
+5. Espera 1 a 2 minutos e recarrega o site
+Subir arquivo com o mesmo nome substitui o antigo. Não duplica. O GitHub guarda a
+versão anterior no histórico — nada se perde.
+2. O que é cada arquivo
+Arquivo O que faz
+index.html O site. Duas abas: Projeto GaIA e Projeto Opera Vox
+BOLINHA_33.html A Bolinha. O botão da aba 1 aponta pra ela
+CNAME Uma linha só: sounavy.com . Fica inerte até o DNS existir
+3. Trocar telefone, Instagram ou e-mail
+Está tudo em um bloco só no index.html , perto do fim, procurando por class="lk".
+https://wa.me/5517991292909
+https://instagram.com/sounavy
+mailto:vendas@sounavy.com
+Regra do WhatsApp: o número vai sem espaço, sem traço, sem +. 55 país + 17 DDD +
+991292909 número → 5517991292909
+Depois de editar, sobe o arquivo de novo (passo 1).
+4. Ligar o sounavy.com — quando aparecer o DNS
+Primeiro: descobrir onde o domínio mora. Safari → lookup.icann.org → digita
+sounavy.com → lê o campo Registrar. Esse é o lugar que cobra por ele e onde o DNS se
+mexe.
+Depois, no painel do registrador, criar estes registros:
+Tipo A , nome @ , apontando para cada um destes quatro:
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153
+Tipo CNAME , nome www , apontando para:
+dralbertoeliasbr.github.io
+Por último, no GitHub: Settings → Pages → Custom domain → escreve Save Espera o cadeado aparecer e marca Enforce HTTPS.
+DNS demora. De 10 minutos a 24 horas. Erro vermelho nesse intervalo é normal.
+sounavy.com →
+5. Coisas que assustam e não são erro
+Aviso vermelho no CNAME antes do DNS existir — esperado. O site funciona igual no
+endereço do GitHub.
+Site não muda depois do commit — é cache. Recarrega segurando o botão de
+atualizar, ou abre em aba anônima.
+App da tela de início abre a caixa vazia — compartimento separado do iOS. Os dados
+continuam no Safari. Exportar antes sempre.
+Safari apaga dado de site com ~7 dias sem visita. A caixa no navegador é operação.
+O arquivo exportado é o backup.
+6. Ordem que faz sentido
+1. Sobe index.html + CNAME → site no ar hoje
+2. Descobre o registrador no lookup.icann.org
+3. Aponta o DNS → sounavy.com responde
+4. Só então põe o endereço na bio do Instagram e no WhatsApp
+Espalhar o link do GitHub antes do domínio existir cria um endereço que depois morre.
+Quem salvou perde o caminho.
+33
